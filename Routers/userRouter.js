@@ -10,18 +10,13 @@ router.post("/login", authController.login);
 
 router.use(authController.protect);
 
+router.patch("/update-profile", userController.upload, userController.resizeUserImage, userController.updateProfile);
+
 router.get("/profile", authController.profile);
 
 router.use(authController.restrictTo("admin"));
-router
-  .route("/")
-  .get(userController.getAllUsers)
-  .post(userController.createUser);
+router.route("/").get(userController.getAllUsers).post(userController.createUser);
 
-router
-  .route("/:id")
-  .get(userController.getOneUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
+router.route("/:id").get(userController.getOneUser).patch(userController.updateUser).delete(userController.deleteUser);
 
 module.exports = router;

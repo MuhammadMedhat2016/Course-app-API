@@ -1,11 +1,14 @@
+const stripe = require("stipe");
+
 const Registeration = require("../Models/registerationModel");
+const catchAsyncErrors = require("../utils/catchAsyncErrors");
+const Course = require("../Models/courseModel");
 const Factory = require("../utils/factory");
+const APIError = require("../utils/apiError");
 
 exports.getAllRegs = Factory.getAll(Registeration);
 
 exports.getOneRegs = Factory.getOne(Registeration);
-
-exports.updateRegs = Factory.updateOne(Registeration);
 
 exports.deleteRegs = Factory.deleteOne(Registeration);
 
@@ -16,8 +19,6 @@ exports.setReigsterationInfo = (req, _, next) => {
     req.body.user = req.user.id;
   }
   req.body.user = req.user.id;
-  if (req.params.courseId) {
-    req.body.course = req.params.courseId;
-  }
+  req.body.course = req.params.courseId;
   next();
 };

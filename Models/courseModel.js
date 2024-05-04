@@ -1,3 +1,5 @@
+const fs = require("fs/promises");
+
 const mongoose = require("mongoose");
 
 const courseSchema = mongoose.Schema(
@@ -16,6 +18,15 @@ const courseSchema = mongoose.Schema(
     description: {
       type: String,
       trim: true,
+    },
+    summary: {
+      type: String,
+      required: [true, "a course must have a summary description"],
+      trim: true,
+    },
+    photo: {
+      type: String,
+      required: [true, "a course must have a photo"],
     },
     ratingsAverage: {
       type: Number,
@@ -40,7 +51,20 @@ const courseSchema = mongoose.Schema(
   }
 );
 
+courseSchema.pre("findOneAndUpdate", async function (next) {
+  const { photo } = this.getUpdate();
+  if (photo) {
+    const id = this.getFilter()._id;
+    const course = await Course.findById(id);
+    await fs.unlink(`./public/img/course/${course.photo}`);
+  }
+  next();
+});
 
+courseSchema.post("findOneAndDelete", async function (course, next) {
+  if (course) await fs.unlink(`./public/img/course/${course.photo}`);
+  next();
+});
 
 const Course = mongoose.model("Course", courseSchema);
 module.exports = Course;

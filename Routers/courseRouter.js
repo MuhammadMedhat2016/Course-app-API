@@ -13,6 +13,8 @@ router
   .post(
     authController.protect,
     authController.restrictTo("user-instructor", "admin"),
+    courseController.upload,
+    courseController.resizeCourseImage,
     courseController.setCourseId,
     courseController.createCourse
   );
@@ -27,7 +29,12 @@ router.use("/:courseId/lectures", lectureRouter);
 router
   .route("/:id")
   .get(courseController.getOneCourse)
-  .patch(authController.restrictTo("user-instructor", "admin"), courseController.updateCourse)
+  .patch(
+    authController.restrictTo("user-instructor", "admin"),
+    courseController.upload,
+    courseController.resizeCourseImage,
+    courseController.updateCourse
+  )
   .delete(authController.restrictTo("user-instructor", "admin"), courseController.deleteCourse);
 
 module.exports = router;

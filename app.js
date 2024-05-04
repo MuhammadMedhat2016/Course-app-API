@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
@@ -27,6 +28,8 @@ mongoose
 
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'public/img/course')));
+app.use(express.static(path.join(__dirname, 'public/img/user')));
 app.use(express.json());
 
 app.use(cors());

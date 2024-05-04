@@ -56,10 +56,11 @@ lectureSchema.pre("findOneAndUpdate", async function (next) {
     const lecture = await Lecture.findById(id);
     await fs.unlink(`./lectures/${lecture.resource}`);
   }
+  next();
 });
 
 lectureSchema.post("findOneAndDelete", async function (lecture, next) {
-  if(lecture) await fs.unlink(`./lectures/${lecture.resource}`);
+  if (lecture) await fs.unlink(`./lectures/${lecture.resource}`);
   next();
 });
 

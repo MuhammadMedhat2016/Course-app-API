@@ -2,8 +2,6 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
-const email = require("../utils/email");
-const { kMaxLength } = require("buffer");
 
 const userSchema = mongoose.Schema(
   {
@@ -40,6 +38,7 @@ const userSchema = mongoose.Schema(
         message: "entered email is in wrong format",
       },
     },
+
     password: {
       type: String,
       required: [true, "a user must have a password"],
@@ -80,6 +79,10 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    photo: {
+      type: String,
+      default: "default",
+    },
   },
   {
     timestamps: true,
@@ -111,15 +114,28 @@ userSchema.pre(/^find/, function (next) {
   next();
 });
 
+userSchema.pre("findOneAndUpdate", async function (next) {
+  const { photo } = this.getUpdate();
+  if (photo) {
+    const id = this.getFilter()._id;
+    const course = await User.findById(id);
+    await fs.unlink(`./public/img/course/${course.photo}`);
+  }
+  next();
+});
+
+userSchema.post("findOneAndDelete", async function (user, next) {
+  if (user) await fs.unlink(`./public/img/course/${user.photo}`);
+  next();
+});
+
 userSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
 userSchema.methods.passwrodChangedAfter = function (tokenIAT) {
   if (this.passwordChangedAt) {
-    const passwordChangedAtTimestamp = Number.parseInt(
-      this.passwordChangedAt.getTime() / 1000
-    );
+    const passwordChangedAtTimestamp = Number.parseInt(this.passwordChangedAt.getTime() / 1000);
     return passwordChangedAtTimestamp > tokenIAT; // 400 > 200
   }
   return false;
@@ -127,20 +143,14 @@ userSchema.methods.passwrodChangedAfter = function (tokenIAT) {
 
 userSchema.methods.generateRandomResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   this.passwordResetToken = hashedToken;
   this.passwordResetTokenExpire = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
 
 userSchema.statics.getHashedResetToken = function (resetToken) {
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   return hashedToken;
 };
 
